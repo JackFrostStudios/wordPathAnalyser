@@ -8,9 +8,9 @@ import (
 )
 
 //AStarAnalyseFile uses the A* Graphing Algorythm to find the shorted path between two words of the same length when changing one letter at a time.
-//It will read in the list of words to be used 
+//It will read in the list of words to be used
 //INPUTS: startword, endword, filelocation, delimiter (strings) (**If delimiter is not to be used enter ""**)
-//OUTPUT: path found result (Boolean), path from end word to start word ([]string)
+//OUTPUT: path found result (Boolean), path from end word to start word ([]string) (if no path is found emtpy array is returned)
 func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []string) {
 	//List of all words that can possibly be used.
 	wordDictionary := readFile(sW, eW, fL, dL)
@@ -87,7 +87,11 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		closedList = append(closedList, currentNode)
 	}
 
-	resultPath = getResultPath(endNode)
+	if foundResult {
+		resultPath = getResultPath(endNode)
+	} else {
+		resultPath = []string{}
+	}
 
 	return
 }
@@ -110,19 +114,21 @@ func readFile(startWord, endWord, fileLocation, delimiter string) []*aStarWordNo
 	//While there are still lines in the file:
 	for scanner.Scan() {
 		//Check the text is not the start or end word (these are dealt with seperately) and if not then create word node and add it to the array.
-		if scanner.Text() != startWord && scanner.Text() != endWord {
-			if delimiter == "" {
+		if delimiter == "" {
+			if scanner.Text() != startWord && scanner.Text() != endWord {
 				aStarWordNode := newAStarWordNode(scanner.Text())
 				wD = append(wD, &aStarWordNode)
-			} else {
-				words := strings.Split(scanner.Text(), delimiter)
-				for _, word := range words {
+			}
+		} else {
+			words := strings.Split(scanner.Text(), delimiter)
+			for _, word := range words {
+				if word != startWord && word != endWord {
 					aStarWordNode := newAStarWordNode(word)
 					wD = append(wD, &aStarWordNode)
 				}
 			}
-
 		}
+
 	}
 
 	return wD
