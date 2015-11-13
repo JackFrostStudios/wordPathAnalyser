@@ -5,17 +5,6 @@ import (
 	"testing"
 )
 
-//Struct used to hold the mocked input.
-type aStarAnalyseMockInput struct {
-	startWord, endWord, fileLocation, delimiter string
-	pathFound                                   bool
-	resultPath                                  []string
-}
-type aStarReadFileMockInput struct {
-	startWord, endWord, fileLocation, delimiter string
-	resultList                                  []aStarWordNode
-}
-
 //Test for the main function in AstarWordAnalyser
 func TestAStarAnalyseFile(t *testing.T) {
 	fmt.Println("Testing Main Analyse File method: 'AStarAnalyseFile'....")
@@ -122,6 +111,7 @@ func TestReadFile(t *testing.T) {
 					word:   "fail"}}},
 	}
 
+	//Loop through all test cases.
 	for i, input := range testInputs {
 		fmt.Print("Test ", i+1, " of ", len(testInputs))
 		//Act
@@ -147,6 +137,7 @@ func TestReadFile(t *testing.T) {
 	}
 }
 
+//Check if the results from AStarAnalyseFile match those expected.
 func doArraysMatch(expected, actual []string) (inputsMatch bool) {
 	if len(expected) != len(actual) {
 		inputsMatch = false
@@ -162,6 +153,7 @@ func doArraysMatch(expected, actual []string) (inputsMatch bool) {
 	return
 }
 
+//Check if the results from readFile match those expected.
 func doNodeArraysMatch(expected []aStarWordNode, actual []*aStarWordNode) (inputsMatch bool) {
 	if len(expected) != len(actual) {
 		inputsMatch = false
@@ -181,6 +173,7 @@ func doNodeArraysMatch(expected []aStarWordNode, actual []*aStarWordNode) (input
 	return
 }
 
+//Used to convert the array of pointers returned by the readFile function to actual objects so they can be printed.
 func convertNodePointersToNodes(nodes []*aStarWordNode) (outputNodes []aStarWordNode) {
 	for _, node := range nodes {
 		currentNode := newAStarWordNode(node.word)
