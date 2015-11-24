@@ -28,8 +28,8 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 	foundResult = false
 
 	//Calculate the estimated minimum cost from start to end word.
-	startNode.hScore = calculateNodeCost(startNode.word, endNode.word)
-	startNode.fScore = startNode.hScore
+	startNode.HScore = calculateNodeCost(startNode.Word, endNode.Word)
+	startNode.FScore = startNode.HScore
 	//Add startWord to openList
 	openList = append(openList, &startNode)
 	//Add endword to the list of words to be analyzed.
@@ -49,12 +49,12 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		//Find the best scored node in current openList
 		for i, node := range openList {
 			//Special case if the bestFScore is -1 then this is first pass through analysis.
-			if bestFScore >= node.fScore || bestFScore == -1 {
+			if bestFScore >= node.FScore || bestFScore == -1 {
 				//We may get nodes in the list that have the same overall score but are 1 step back.
 				//Checking that the Hscore is the lowest of the best F scores will ensure the best path is checked first.
-				if bestHScore > node.hScore || bestHScore == -1 {
+				if bestHScore > node.HScore || bestHScore == -1 {
 					//Store details of the best scored node in open list.
-					bestFScore = node.fScore
+					bestFScore = node.FScore
 					currentNode = node
 					index = i
 				}
@@ -65,7 +65,7 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		openList = append(openList[:index], openList[index+1:]...)
 
 		//If true we have found the solution
-		if currentNode.word == endNode.word {
+		if currentNode.Word == endNode.Word {
 			foundResult = true
 			break
 		}
@@ -73,13 +73,13 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		//Get all the word nodes that are 1 step from the current node, update word dictionary so that all words found are removed from list to be analyzed.
 		childenNodes, wordDictionary = generateNodeChildren(currentNode, wordDictionary)
 		//G score (cost of path to this point) will always be current gscore + 1 for children as they are 1 step from the previous node.
-		tempGScore := currentNode.gScore + 1
+		tempGScore := currentNode.GScore + 1
 
 		//For each child node update the scores and add the node to the open list
 		for _, cN := range childenNodes {
-			cN.gScore = tempGScore
-			cN.hScore = calculateNodeCost(cN.word, endNode.word)
-			cN.fScore = cN.gScore + cN.hScore
+			cN.GScore = tempGScore
+			cN.HScore = calculateNodeCost(cN.Word, endNode.Word)
+			cN.FScore = cN.GScore + cN.HScore
 			openList = append(openList, cN)
 		}
 
@@ -159,21 +159,21 @@ func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenN
 	childrenNodes = make([]*aStarWordNode, 0, len(dict))
 
 	//Length of word being checked from an index of 0
-	wordLength := len(node.word) - 1
+	wordLength := len(node.Word) - 1
 	//Number of letters that are the same from current node and the potential children.
 	matchingLetters := 0
 
 	//For each potential word calculate the number of matching letters, update the node and lists as required based on matching letters.
 	for _, dictNode := range dict {
 		for i := 0; i <= wordLength; i++ {
-			if node.word[i] == dictNode.word[i] {
+			if node.Word[i] == dictNode.Word[i] {
 				matchingLetters++
 			}
 		}
 		//This means there is only 1 letter different (matching are length-1) so is will be a child of the current node.
 		if matchingLetters == wordLength {
 			//Update the aStarWordNode with the parentNode
-			dictNode.parentNode = node
+			dictNode.ParentNode = node
 			//Add the node to the childrenNode list.
 			childrenNodes = append(childrenNodes, dictNode)
 
@@ -197,12 +197,12 @@ func getResultPath(endNode aStarWordNode) []string {
 	result := make([]string, 0)
 
 	//While the current node has a parent node then continue to loop and add the current loop to the array.
-	for currentNode.parentNode != nil {
-		result = append(result, currentNode.word)
-		currentNode = currentNode.parentNode
+	for currentNode.ParentNode != nil {
+		result = append(result, currentNode.Word)
+		currentNode = currentNode.ParentNode
 	}
 	//Add the current node to the array as the final node would not be included in the above loop as its parentNode == nil
-	result = append(result, currentNode.word)
+	result = append(result, currentNode.Word)
 
 	return result
 }

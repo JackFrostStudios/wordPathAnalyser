@@ -2,15 +2,24 @@ package wordPathAnalyser
 
 //Structs used to hold the mocked input.
 type aStarAnalyseMockInput struct {
-	startWord, endWord, fileLocation, delimiter string
-	pathFound                                   bool
-	resultPath                                  []string
+	StartWord, EndWord, FileLocation, Delimiter string
+	PathFound                                   bool
+	ResultPath                                  []string
 }
 type aStarReadFileMockInput struct {
-	startWord, endWord, fileLocation, delimiter string
-	resultList                                  []aStarWordNode
+	StartWord, EndWord, FileLocation, Delimiter string
+	ResultList                                  []*aStarWordNode
 }
 type aStarCalculateNodeCostMockInput struct {
-	startWord, endWord string
-	result             int
+	StartWord, EndWord string
+	Result             int
+}
+type aStarGenerateNodeChildren struct {
+	InputNode                             *aStarWordNode
+	InputDictionary                       []*aStarWordNode
+	ResultChildrenNodes, ResultDictionary []*aStarWordNode
+}
+type aStarGetResultPath struct {
+	EndNode    aStarWordNode
+	ResultList []string
 }
