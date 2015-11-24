@@ -10,3 +10,7 @@ type aStarReadFileMockInput struct {
 	startWord, endWord, fileLocation, delimiter string
 	resultList                                  []aStarWordNode
 }
+type aStarCalculateNodeCostMockInput struct {
+	startWord, endWord string
+	result             int
+}

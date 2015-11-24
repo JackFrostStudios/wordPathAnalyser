@@ -46,6 +46,7 @@ func TestAStarAnalyseFile(t *testing.T) {
 	}
 }
 
+//Test the read file function will return an array of the word nodes for a given file.
 func TestReadFile(t *testing.T) {
 	fmt.Println("Testing read in file method: 'readFile'....")
 
@@ -134,6 +135,54 @@ func TestReadFile(t *testing.T) {
 		} else {
 			fmt.Println(" - passed.")
 		}
+	}
+}
+
+//Test that the calculate node function will return the correct cost for two given words.
+func TestCalculateNodeCost(t *testing.T) {
+	fmt.Println("Testing read in file method: 'calculateNodeCost'....")
+
+	//Arrange
+	testInputs := []aStarCalculateNodeCostMockInput{
+		{startWord: "test",
+			endWord: "test",
+			result:  0},
+		{startWord: "test",
+			endWord: "best",
+			result:  1},
+		{startWord: "test",
+			endWord: "beat",
+			result:  2},
+		{startWord: "test",
+			endWord: "brat",
+			result:  3},
+		{startWord: "test",
+			endWord: "brag",
+			result:  4},
+	}
+
+	//Loop through all test cases
+	for i, input := range testInputs {
+		fmt.Print("Test ", i+1, " of ", len(testInputs))
+		//Act
+		result := calculateNodeCost(input.startWord, input.endWord)
+
+		//Assert
+		if input.result != result {
+			t.Error(
+				"Given the inputs:\n",
+				"start word = ", input.startWord, "\n",
+				"end word = ", input.endWord, "\n",
+				"Expected result to be:\n",
+				"Result = ", input.result, "\n",
+				"Actual result was:\n",
+				"Result = ", result, "\n",
+			)
+			fmt.Println(" - failed.")
+		} else {
+			fmt.Println(" - passed.")
+		}
+
 	}
 }
 

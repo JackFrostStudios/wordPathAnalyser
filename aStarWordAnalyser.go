@@ -142,7 +142,7 @@ func calculateNodeCost(s, e string) int {
 	wordLength := result - 1
 
 	//For each letter in the word check if they match. If they are minus 1 required step from path cost result.
-	for i := 0; i < wordLength; i++ {
+	for i := 0; i <= wordLength; i++ {
 		if s[i] == e[i] {
 			result = result - 1
 		}
