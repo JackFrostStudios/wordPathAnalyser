@@ -15,9 +15,9 @@ type aStarCalculateNodeCostMockInput struct {
 	Result             int
 }
 type aStarGenerateNodeChildren struct {
-	InputNode                             *aStarWordNode
-	InputDictionary                       []*aStarWordNode
-	ResultChildrenNodes, ResultDictionary []*aStarWordNode
+	InputNode           *aStarWordNode
+	InputDictionary     []*aStarWordNode
+	ResultChildrenNodes []*aStarWordNode
 }
 type aStarGetResultPath struct {
 	EndNode    aStarWordNode

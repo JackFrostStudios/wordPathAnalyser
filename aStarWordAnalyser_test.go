@@ -172,50 +172,41 @@ func TestGenerateNodeChildren(t *testing.T) {
 	inputNode1 := &wordNodeTest
 	inputDict1 := []*aStarWordNode{&wordNodePest, &wordNodeBest, &wordNodeBeat, &wordNodeBrat, &wordNodeBrag}
 	resultChildren1 := []*aStarWordNode{&wordNodePest, &wordNodeBest}
-	resultDict1 := []*aStarWordNode{&wordNodeBeat, &wordNodeBrat, &wordNodeBrag}
 
 	inputNode2 := &wordNodeBest
 	inputDict2 := []*aStarWordNode{&wordNodeTest, &wordNodePest, &wordNodeBeat, &wordNodeBrat, &wordNodeBrag}
 	resultChildren2 := []*aStarWordNode{&wordNodeTest, &wordNodePest, &wordNodeBeat}
-	resultDict2 := []*aStarWordNode{&wordNodeBrat, &wordNodeBrag}
 
 	inputNode3 := &wordNodeBrag
 	inputDict3 := []*aStarWordNode{&wordNodeTest, &wordNodeBest, &wordNodePest, &wordNodeBeat, &wordNodeBrat}
 	resultChildren3 := []*aStarWordNode{&wordNodeBrat}
-	resultDict3 := []*aStarWordNode{&wordNodeTest, &wordNodeBest, &wordNodePest, &wordNodeBeat}
-
 	testInputs := []aStarGenerateNodeChildren{
 		{InputNode: inputNode1,
 			InputDictionary:     inputDict1,
-			ResultChildrenNodes: resultChildren1,
-			ResultDictionary:    resultDict1},
+			ResultChildrenNodes: resultChildren1},
 		{InputNode: inputNode2,
 			InputDictionary:     inputDict2,
-			ResultChildrenNodes: resultChildren2,
-			ResultDictionary:    resultDict2},
+			ResultChildrenNodes: resultChildren2},
 		{InputNode: inputNode3,
 			InputDictionary:     inputDict3,
-			ResultChildrenNodes: resultChildren3,
-			ResultDictionary:    resultDict3},
+			ResultChildrenNodes: resultChildren3},
 	}
 
 	for i, input := range testInputs {
 		fmt.Print("Test ", i+1, " of ", len(testInputs))
 		//Act
-		resultChildren, resultDict := generateNodeChildren(input.InputNode, input.InputDictionary)
+		resultChildren := generateNodeChildren(input.InputNode, input.InputDictionary)
 
 		//Assert
-		if !doNodePointerArraysMatch(input.ResultChildrenNodes, resultChildren) || !doNodePointerArraysMatch(input.ResultDictionary, resultDict) {
+		if !doNodePointerArraysMatch(input.ResultChildrenNodes, resultChildren) {
 			t.Error(
 				"Given the inputs:\n",
 				"start node = ", input.InputNode.Word, "\n",
 				"Input Dictionary = ", convertNodePointersToNodes(input.InputDictionary), "\n",
 				"Expected result to be:\n",
 				"Result Children = ", convertNodePointersToNodes(input.ResultChildrenNodes), "\n",
-				"Result Dictionary = ", convertNodePointersToNodes(input.ResultDictionary), "\n",
 				"Actual result was:\n",
 				"Result Children = ", convertNodePointersToNodes(resultChildren), "\n",
-				"Result Dictionary = ", convertNodePointersToNodes(resultDict), "\n",
 			)
 			fmt.Println(" - failed.")
 		} else {

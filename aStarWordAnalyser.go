@@ -17,7 +17,7 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 	//List of words that have been assigned a partentNode and are still to be analyzed
 	openList := make([]*aStarWordNode, 0)
 	//List of words that have been analyzed.
-	closedList := make([]*aStarWordNode, 0)
+	//closedList := make([]*aStarWordNode, 0)
 	//The aStarWordNode that relates to the start word selected.
 	startNode := newAStarWordNode(sW)
 	//The aStarWordNode that relates to the end word seletected.
@@ -41,8 +41,6 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		var currentNode *aStarWordNode
 		//int used to indicate the best potential score of all nodes in the open list
 		bestFScore := -1
-		//int used to indicate the best remaining step score of all nodes in the open list.
-		bestHScore := -1
 		//Int used to indicate the position of the best score.
 		index := 0
 
@@ -50,14 +48,10 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		for i, node := range openList {
 			//Special case if the bestFScore is -1 then this is first pass through analysis.
 			if bestFScore >= node.FScore || bestFScore == -1 {
-				//We may get nodes in the list that have the same overall score but are 1 step back.
-				//Checking that the Hscore is the lowest of the best F scores will ensure the best path is checked first.
-				if bestHScore > node.HScore || bestHScore == -1 {
-					//Store details of the best scored node in open list.
-					bestFScore = node.FScore
-					currentNode = node
-					index = i
-				}
+				//Store details of the best scored node in open list.
+				bestFScore = node.FScore
+				currentNode = node
+				index = i
 			}
 		}
 
@@ -71,20 +65,20 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		}
 
 		//Get all the word nodes that are 1 step from the current node, update word dictionary so that all words found are removed from list to be analyzed.
-		childenNodes, wordDictionary = generateNodeChildren(currentNode, wordDictionary)
+		childenNodes = generateNodeChildren(currentNode, wordDictionary)
 		//G score (cost of path to this point) will always be current gscore + 1 for children as they are 1 step from the previous node.
 		tempGScore := currentNode.GScore + 1
 
 		//For each child node update the scores and add the node to the open list
 		for _, cN := range childenNodes {
-			cN.GScore = tempGScore
-			cN.HScore = calculateNodeCost(cN.Word, endNode.Word)
-			cN.FScore = cN.GScore + cN.HScore
-			openList = append(openList, cN)
+			if tempGScore < cN.GScore || cN.GScore == 0 {
+				cN.GScore = tempGScore
+				cN.HScore = calculateNodeCost(cN.Word, endNode.Word)
+				cN.FScore = cN.GScore + cN.HScore
+				cN.ParentNode = currentNode
+				openList = append(openList, cN)
+			}
 		}
-
-		//Add the current node to the closed list as it has now been analyzed.
-		closedList = append(closedList, currentNode)
 	}
 
 	if foundResult {
@@ -152,9 +146,7 @@ func calculateNodeCost(s, e string) int {
 }
 
 //Generate all the children nodes when given a starting node and a list of potential nodes.
-func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenNodes, newDict []*aStarWordNode) {
-	//The node dictionary once the node children have been removed.
-	newDict = make([]*aStarWordNode, 0, len(dict))
+func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenNodes []*aStarWordNode) {
 	//The array to store the children nodes (maximum potential size / cap is length of aStarWordNode dictionary)
 	childrenNodes = make([]*aStarWordNode, 0, len(dict))
 
@@ -172,16 +164,9 @@ func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenN
 		}
 		//This means there is only 1 letter different (matching are length-1) so is will be a child of the current node.
 		if matchingLetters == wordLength {
-			//Update the aStarWordNode with the parentNode
-			dictNode.ParentNode = node
 			//Add the node to the childrenNode list.
 			childrenNodes = append(childrenNodes, dictNode)
-
-			//Otherwise if the matching letters is less then word length add it to the list of words to remain in the pool.
-		} else if matchingLetters < wordLength {
-			newDict = append(newDict, dictNode)
 		}
-		//If the word node has not matched on either of the above and gets here it means the word is the same as the current node so it can be removed from the list to be checked.
 
 		matchingLetters = 0
 	}
