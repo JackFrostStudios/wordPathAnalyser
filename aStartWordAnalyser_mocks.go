@@ -4,7 +4,7 @@ package wordPathAnalyser
 type aStarAnalyseMockInput struct {
 	StartWord, EndWord, FileLocation, Delimiter string
 	PathFound                                   bool
-	ResultPath                                  []string
+	ResultPathLength                            int
 }
 type aStarReadFileMockInput struct {
 	StartWord, EndWord, FileLocation, Delimiter string

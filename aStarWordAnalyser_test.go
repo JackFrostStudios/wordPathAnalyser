@@ -1,7 +1,11 @@
 package wordPathAnalyser
 
 import (
+	"bufio"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -10,14 +14,28 @@ func TestAStarAnalyseFile(t *testing.T) {
 	fmt.Println("Testing Main Analyse File method: 'AStarAnalyseFile'....")
 
 	//Arrange
-	testInputs := []aStarAnalyseMockInput{
-		{StartWord: "test", EndWord: "most", FileLocation: "./testInput.txt", Delimiter: "", PathFound: true, ResultPath: []string{"most", "post", "pest", "test"}},
-		{StartWord: "pest", EndWord: "post", FileLocation: "./testInput.txt", Delimiter: "", PathFound: true, ResultPath: []string{"post", "pest"}},
-		{StartWord: "test", EndWord: "fail", FileLocation: "./testInput.txt", Delimiter: "", PathFound: false, ResultPath: []string{}},
-		{StartWord: "test", EndWord: "most", FileLocation: "./testInputDelimited.txt", Delimiter: ",", PathFound: true, ResultPath: []string{"most", "post", "pest", "test"}},
-		{StartWord: "pest", EndWord: "post", FileLocation: "./testInputDelimited.txt", Delimiter: ",", PathFound: true, ResultPath: []string{"post", "pest"}},
-		{StartWord: "test", EndWord: "fail", FileLocation: "./testInputDelimited.txt", Delimiter: ",", PathFound: false, ResultPath: []string{}},
+
+	testInputs := readTestFile("../Answers.txt", " -> ")
+
+	for _, input := range testInputs {
+		input.FileLocation = "../WordList.txt"
+		input.Delimiter = ""
+		input.PathFound = true
 	}
+
+	customInput1 := aStarAnalyseMockInput{StartWord: "test", EndWord: "most", FileLocation: "./testInput.txt", Delimiter: "", PathFound: true, ResultPathLength: 4}
+	customInput2 := aStarAnalyseMockInput{StartWord: "pest", EndWord: "post", FileLocation: "./testInput.txt", Delimiter: "", PathFound: true, ResultPathLength: 2}
+	customInput3 := aStarAnalyseMockInput{StartWord: "test", EndWord: "fail", FileLocation: "./testInput.txt", Delimiter: "", PathFound: false, ResultPathLength: 0}
+	customInput4 := aStarAnalyseMockInput{StartWord: "test", EndWord: "most", FileLocation: "./testInputDelimited.txt", Delimiter: ",", PathFound: true, ResultPathLength: 4}
+	customInput5 := aStarAnalyseMockInput{StartWord: "pest", EndWord: "post", FileLocation: "./testInputDelimited.txt", Delimiter: ",", PathFound: true, ResultPathLength: 2}
+	customInput6 := aStarAnalyseMockInput{StartWord: "test", EndWord: "fail", FileLocation: "./testInputDelimited.txt", Delimiter: ",", PathFound: false, ResultPathLength: 0}
+
+	testInputs = append(testInputs, &customInput1)
+	testInputs = append(testInputs, &customInput2)
+	testInputs = append(testInputs, &customInput3)
+	testInputs = append(testInputs, &customInput4)
+	testInputs = append(testInputs, &customInput5)
+	testInputs = append(testInputs, &customInput6)
 
 	for i, input := range testInputs {
 		fmt.Print("Test ", i+1, " of ", len(testInputs))
@@ -25,23 +43,24 @@ func TestAStarAnalyseFile(t *testing.T) {
 		pathFound, resultPath := AStarAnalyseFile(input.StartWord, input.EndWord, input.FileLocation, input.Delimiter)
 
 		//Assert
-		if pathFound != input.PathFound || !doArraysMatch(input.ResultPath, resultPath) {
+		if pathFound != input.PathFound || input.ResultPathLength != len(resultPath) {
 			t.Error(
+				"Test number ", i+1, "\n",
 				"Given the inputs:\n",
 				"start word = ", input.StartWord, "\n",
 				"end word = ", input.EndWord, "\n",
-				" file location = ", input.FileLocation, "\n",
-				" delimiter = ", input.Delimiter, "\n",
+				"file location = ", input.FileLocation, "\n",
+				"delimiter = ", input.Delimiter, "\n",
 				"Expected results to be:\n",
 				"Path Found = ", input.PathFound, "\n",
-				"Result Path = ", input.ResultPath, "\n",
+				"Result Path = ", input.ResultPathLength, "\n",
 				"Actual results were:\n",
 				"Path Found = ", pathFound, "\n",
-				"Result Path = ", resultPath, "\n",
+				"Result Path = ", len(resultPath), resultPath, "\n",
 			)
 			fmt.Println("- failed.")
 		} else {
-			fmt.Println(" - success.")
+			fmt.Println(" - passed.")
 		}
 	}
 	fmt.Print("\n")
@@ -91,6 +110,7 @@ func TestReadFile(t *testing.T) {
 		//Assert
 		if !doNodePointerArraysMatchOnValue(input.ResultList, resultList) {
 			t.Error(
+				"Test number ", i+1, "\n",
 				"Given the inputs:\n",
 				"start word = ", input.StartWord, "\n",
 				"end word = ", input.EndWord, "\n",
@@ -141,6 +161,7 @@ func TestCalculateNodeCost(t *testing.T) {
 		//Assert
 		if input.Result != result {
 			t.Error(
+				"Test number ", i+1, "\n",
 				"Given the inputs:\n",
 				"start word = ", input.StartWord, "\n",
 				"end word = ", input.EndWord, "\n",
@@ -200,6 +221,7 @@ func TestGenerateNodeChildren(t *testing.T) {
 		//Assert
 		if !doNodePointerArraysMatch(input.ResultChildrenNodes, resultChildren) {
 			t.Error(
+				"Test number ", i+1, "\n",
 				"Given the inputs:\n",
 				"start node = ", input.InputNode.Word, "\n",
 				"Input Dictionary = ", convertNodePointersToNodes(input.InputDictionary), "\n",
@@ -246,6 +268,7 @@ func TestGetResultPath(t *testing.T) {
 		//Assert
 		if !doArraysMatch(input.ResultList, result) {
 			t.Error(
+				"Test number ", i+1, "\n",
 				"Given the inputs:\n",
 				"End node = ", input.EndNode.Word, "\n",
 				"Expected result to be:\n",
@@ -321,4 +344,32 @@ func convertNodePointersToNodes(nodes []*aStarWordNode) (outputNodes []aStarWord
 		outputNodes = append(outputNodes, currentNode)
 	}
 	return outputNodes
+}
+
+func readTestFile(fileLocation, delimiter string) []*aStarAnalyseMockInput {
+	//Open the file and log an error if there is one.
+	file, err := os.Open(fileLocation)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//Defer file.close to the end of this function.
+	defer file.Close()
+
+	//Array to store wordNodes.
+	result := make([]*aStarAnalyseMockInput, 0)
+
+	//create scanner for the file opened.
+	scanner := bufio.NewScanner(file)
+	//While there are still lines in the file:
+	for scanner.Scan() {
+		//Check the text is not the start or end word (these are dealt with seperately) and if not then create word node and add it to the array.
+		words := strings.Split(scanner.Text(), delimiter)
+		var lineInput aStarAnalyseMockInput
+		lineInput.StartWord = words[0]
+		lineInput.EndWord = words[len(words)-1]
+		lineInput.ResultPathLength = len(words)
+		result = append(result, &lineInput)
+	}
+
+	return result
 }
