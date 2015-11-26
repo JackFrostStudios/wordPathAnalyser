@@ -193,33 +193,40 @@ func TestGenerateNodeChildren(t *testing.T) {
 	inputNode1 := &wordNodeTest
 	inputDict1 := []*aStarWordNode{&wordNodePest, &wordNodeBest, &wordNodeBeat, &wordNodeBrat, &wordNodeBrag}
 	resultChildren1 := []*aStarWordNode{&wordNodePest, &wordNodeBest}
+	resultDict1 := []*aStarWordNode{&wordNodeBeat, &wordNodeBrat, &wordNodeBrag}
 
 	inputNode2 := &wordNodeBest
 	inputDict2 := []*aStarWordNode{&wordNodeTest, &wordNodePest, &wordNodeBeat, &wordNodeBrat, &wordNodeBrag}
 	resultChildren2 := []*aStarWordNode{&wordNodeTest, &wordNodePest, &wordNodeBeat}
+	resultDict2 := []*aStarWordNode{&wordNodeBrat, &wordNodeBrag}
 
 	inputNode3 := &wordNodeBrag
 	inputDict3 := []*aStarWordNode{&wordNodeTest, &wordNodeBest, &wordNodePest, &wordNodeBeat, &wordNodeBrat}
 	resultChildren3 := []*aStarWordNode{&wordNodeBrat}
+	resultDict3 := []*aStarWordNode{&wordNodeTest, &wordNodeBest, &wordNodePest, &wordNodeBeat}
+
 	testInputs := []aStarGenerateNodeChildren{
 		{InputNode: inputNode1,
 			InputDictionary:     inputDict1,
-			ResultChildrenNodes: resultChildren1},
+			ResultChildrenNodes: resultChildren1,
+			ResultDictionary:    resultDict1},
 		{InputNode: inputNode2,
 			InputDictionary:     inputDict2,
-			ResultChildrenNodes: resultChildren2},
+			ResultChildrenNodes: resultChildren2,
+			ResultDictionary:    resultDict2},
 		{InputNode: inputNode3,
 			InputDictionary:     inputDict3,
-			ResultChildrenNodes: resultChildren3},
+			ResultChildrenNodes: resultChildren3,
+			ResultDictionary:    resultDict3},
 	}
 
 	for i, input := range testInputs {
 		fmt.Print("Test ", i+1, " of ", len(testInputs))
 		//Act
-		resultChildren := generateNodeChildren(input.InputNode, input.InputDictionary)
+		resultChildren, resultDictionary := generateNodeChildren(input.InputNode, input.InputDictionary)
 
 		//Assert
-		if !doNodePointerArraysMatch(input.ResultChildrenNodes, resultChildren) {
+		if !doNodePointerArraysMatch(input.ResultChildrenNodes, resultChildren) || !doNodePointerArraysMatch(input.ResultDictionary, resultDictionary) {
 			t.Error(
 				"Test number ", i+1, "\n",
 				"Given the inputs:\n",

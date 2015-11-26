@@ -17,7 +17,7 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 	//List of words that have been assigned a partentNode and are still to be analyzed
 	openList := make([]*aStarWordNode, 0)
 	//List of words that have been analyzed.
-	//closedList := make([]*aStarWordNode, 0)
+	closedList := make([]*aStarWordNode, 0)
 	//The aStarWordNode that relates to the start word selected.
 	startNode := newAStarWordNode(sW)
 	//The aStarWordNode that relates to the end word seletected.
@@ -41,6 +41,8 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		var currentNode *aStarWordNode
 		//int used to indicate the best potential score of all nodes in the open list
 		bestFScore := -1
+		//int used to indicate the best potential score of all nodes in the open list
+		bestGScore := -1
 		//Int used to indicate the position of the best score.
 		index := 0
 
@@ -48,10 +50,15 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		for i, node := range openList {
 			//Special case if the bestFScore is -1 then this is first pass through analysis.
 			if bestFScore >= node.FScore || bestFScore == -1 {
-				//Store details of the best scored node in open list.
-				bestFScore = node.FScore
-				currentNode = node
-				index = i
+				//Special case if the bestGScore is -1 then this is first pass through analysis.
+				//We check for the lowest GScore after the best Fscore to make sure that children nodes are attached at the earliest point possible.
+				if bestGScore >= node.GScore || bestGScore == -1 {
+					//Store details of the best scored node in open list.
+					bestFScore = node.FScore
+					bestGScore = node.GScore
+					currentNode = node
+					index = i
+				}
 			}
 		}
 
@@ -65,7 +72,7 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 		}
 
 		//Get all the word nodes that are 1 step from the current node, update word dictionary so that all words found are removed from list to be analyzed.
-		childenNodes = generateNodeChildren(currentNode, wordDictionary)
+		childenNodes, wordDictionary = generateNodeChildren(currentNode, wordDictionary)
 		//G score (cost of path to this point) will always be current gscore + 1 for children as they are 1 step from the previous node.
 		tempGScore := currentNode.GScore + 1
 
@@ -79,6 +86,9 @@ func AStarAnalyseFile(sW, eW, fL, dL string) (foundResult bool, resultPath []str
 				openList = append(openList, cN)
 			}
 		}
+
+		//Append current node to closed list as it has now been analysed
+		closedList = append(closedList, currentNode)
 	}
 
 	if foundResult {
@@ -146,10 +156,11 @@ func calculateNodeCost(s, e string) int {
 }
 
 //Generate all the children nodes when given a starting node and a list of potential nodes.
-func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenNodes []*aStarWordNode) {
+func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenNodes, newDict []*aStarWordNode) {
 	//The array to store the children nodes (maximum potential size / cap is length of aStarWordNode dictionary)
 	childrenNodes = make([]*aStarWordNode, 0, len(dict))
 
+	newDict = make([]*aStarWordNode, 0, len(dict))
 	//Length of word being checked from an index of 0
 	wordLength := len(node.Word) - 1
 	//Number of letters that are the same from current node and the potential children.
@@ -166,6 +177,8 @@ func generateNodeChildren(node *aStarWordNode, dict []*aStarWordNode) (childrenN
 		if matchingLetters == wordLength {
 			//Add the node to the childrenNode list.
 			childrenNodes = append(childrenNodes, dictNode)
+		} else {
+			newDict = append(newDict, dictNode)
 		}
 
 		matchingLetters = 0
