@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -37,33 +38,51 @@ func TestAStarAnalyseFile(t *testing.T) {
 	testInputs = append(testInputs, &customInput5)
 	testInputs = append(testInputs, &customInput6)
 
-	for i, input := range testInputs {
-		fmt.Print("Test ", i+1, " of ", len(testInputs))
-		//Act
-		pathFound, resultPath := AStarAnalyseFile(input.StartWord, input.EndWord, input.FileLocation, input.Delimiter)
+	totalTests := len(testInputs)
 
-		//Assert
-		if pathFound != input.PathFound || input.ResultPathLength != len(resultPath) {
-			t.Error(
-				"Test number ", i+1, "\n",
-				"Given the inputs:\n",
-				"start word = ", input.StartWord, "\n",
-				"end word = ", input.EndWord, "\n",
-				"file location = ", input.FileLocation, "\n",
-				"delimiter = ", input.Delimiter, "\n",
-				"Expected results to be:\n",
-				"Path Found = ", input.PathFound, "\n",
-				"Result Path = ", input.ResultPathLength, "\n",
-				"Actual results were:\n",
-				"Path Found = ", pathFound, "\n",
-				"Result Path = ", len(resultPath), resultPath, "\n",
-			)
-			fmt.Println("- failed.")
-		} else {
-			fmt.Println(" - passed.")
-		}
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(totalTests)
+	testResultOutput := make(chan string, 100)
+
+	for i, input := range testInputs {
+		go runAstarTestConcurrently(input, i+1, totalTests, &waitGroup, testResultOutput)
 	}
+	go dealWithTestOutputConcurrelty(testResultOutput, t)
+
+	waitGroup.Wait()
+	close(testResultOutput)
 	fmt.Print("\n")
+}
+
+func runAstarTestConcurrently(testInput *aStarAnalyseMockInput, testNumber, totalTests int, wg *sync.WaitGroup, outputChannel chan string) {
+	defer wg.Done()
+	//Act
+	pathFound, resultPath := AStarAnalyseFile(testInput.StartWord, testInput.EndWord, testInput.FileLocation, testInput.Delimiter)
+
+	//Assert
+	if pathFound != testInput.PathFound || testInput.ResultPathLength != len(resultPath) {
+		outputText := fmt.Sprint("Test number ", testNumber, "\n", "Given the inputs:\n",
+			"start word = ", testInput.StartWord, "\n",
+			"end word = ", testInput.EndWord, "\n",
+			"file location = ", testInput.FileLocation, "\n",
+			"delimiter = ", testInput.Delimiter, "\n",
+			"Expected results to be:\n",
+			"Path Found = ", testInput.PathFound, "\n",
+			"Result Path = ", testInput.ResultPathLength, "\n",
+			"Actual results were:\n",
+			"Path Found = ", pathFound, "\n",
+			"Result Path = ", resultPath, "\n")
+		outputChannel <- outputText
+		fmt.Println("Test ", testNumber, " of ", totalTests, "- failed.")
+	} else {
+		fmt.Println("Test ", testNumber, " of ", totalTests, " - passed.")
+	}
+}
+
+func dealWithTestOutputConcurrelty(inputChannel chan string, t *testing.T) {
+	for inputString := range inputChannel {
+		t.Error(inputString)
+	}
 }
 
 //Test the read file function will return an array of the word nodes for a given file.
